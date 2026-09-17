@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck
+        run: bun run typecheck:ext
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Unit tests
+        run: bun run test
+
+      - name: Architecture layers
+        run: bun run check:layers
+
+      - name: Protocol keys
+        run: bun run check:protocol-keys
+
+      - name: Build (Chrome MV3)
+        run: bun run build
+
+      - name: Build (Firefox MV3)
+        run: bun run build:firefox
+
+      - name: Build (runtime-only)
+        run: bun run build:runtime
+
+      - name: Manifests
+        run: bun run check:manifests
+
+      - name: Runtime output
+        run: bun run check:runtime

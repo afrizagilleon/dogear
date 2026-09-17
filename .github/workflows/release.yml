@@ -1,0 +1,90 @@
+name: Release
+
+# Buat rilis dengan menandai commit, mis. `git tag v0.1.0 && git push origin v0.1.0`.
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install
+        run: bun install --frozen-lockfile
+
+      - name: Gates
+        run: |
+          bun run typecheck:ext
+          bun run lint
+          bun run test
+
+      - name: Build
+        run: |
+          bun run build
+          bun run build:firefox
+          bun run build:runtime
+
+      - name: Package
+        run: |
+          mkdir -p release
+          cd .output/chrome-mv3   && zip -qr ../../release/dogear-chrome-mv3-${GITHUB_REF_NAME}.zip . && cd ../..
+          cd .output/firefox-mv3  && zip -qr ../../release/dogear-firefox-mv3-${GITHUB_REF_NAME}.zip . && cd ../..
+          cd .output/runtime      && zip -qr ../../release/dogear-runtime-${GITHUB_REF_NAME}.zip . && cd ../..
+          ls -lh release/
+
+      - name: Publish
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*.zip
+          body: |
+            ## Install (Chrome / Chromium, ~1 minute)
+
+            1. Download **`dogear-chrome-mv3-${{ github.ref_name }}.zip`** below and unzip it.
+            2. Open `chrome://extensions` and turn on **Developer mode** (top right).
+            3. Click **Load unpacked** and pick the unzipped folder.
+            4. On the **dogear** card click **Details**, then turn on **Allow user scripts**.
+               This is off by default since Chrome 138 and there is no API to turn it on —
+               **without it nothing will run.**
+            5. Click the dogear toolbar icon to open the side panel.
+
+            ## Try it in 60 seconds
+
+            Open any page, then type this into the scratch box in the panel and run it:
+
+            ```js
+            const el = await pick(['h1', '.title']);
+            print(el.textContent.trim());
+            ```
+
+            `pick()` takes a list of candidate selectors and reports **which one** matched, so
+            you find out the moment a site shifts under you — instead of just failing.
+
+            Next step: turn that into a notebook (a `notebook.md` plus one `.js` file per step).
+            The seventeen helpers available inside a cell are documented in
+            [SINTAKS.md](https://github.com/afrizagilleon/dogear/blob/main/SINTAKS.md)
+            *(in Indonesian)*.
+
+            ## Which file do I want?
+
+            | file | what it is |
+            |---|---|
+            | `dogear-chrome-mv3-*.zip` | **start here** — full extension, side panel + editor |
+            | `dogear-firefox-mv3-*.zip` | Firefox MV3 build; it loads, but Firefox has no `chrome.userScripts`, so steps cannot execute yet |
+            | `dogear-runtime-*.zip` | background-only build — the engine with no UI, for embedding |
+
+            ## Known limits
+
+            Listed in full under **What it cannot do** in the
+            [README](https://github.com/afrizagilleon/dogear#what-it-cannot-do). The short version:
+            Chrome only, the user-scripts toggle needs one human click per install, synthetic key
+            events cannot reach native browser behaviour, and notebooks live in the extension's
+            private storage rather than as files on disk.
+          generate_release_notes: true

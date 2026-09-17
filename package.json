@@ -1,0 +1,45 @@
+{
+  "name": "dogear",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Notebook-style step runner for the browser — write, run and debug automation steps on a live page, from a side panel.",
+  "license": "MIT",
+  "author": "Afriza Gilleon Ginting",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/afrizagilleon/dogear.git"
+  },
+  "scripts": {
+    "build": "wxt build",
+    "build:firefox": "wxt build -b firefox --mv3",
+    "build:runtime": "wxt build -m runtime",
+    "typecheck:ext": "tsc -p tsconfig.ext.json --noEmit",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "check:layers": "node scripts/check-layers.mjs",
+    "check:manifests": "node scripts/verify-manifests.mjs",
+    "check:runtime": "node scripts/verify-runtime-output.mjs",
+    "check:protocol-keys": "node scripts/check-protocol-keys.mjs",
+    "measure:worlds": "node scripts/measure-worlds.mjs",
+    "screenshot": "node scripts/screenshot.mjs"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.68.0",
+    "@typescript-eslint/parser": "^8.68.0",
+    "eslint": "^10.9.1",
+    "globals": "^17.11.0",
+    "typescript": "^5.6.3",
+    "vitest": "^4.1.11",
+    "wxt": "0.19.29"
+  },
+  "dependencies": {
+    "@codemirror/commands": "^6.10.4",
+    "@codemirror/lang-javascript": "^6.2.5",
+    "@codemirror/state": "^6.7.1",
+    "@codemirror/theme-one-dark": "^6.1.3",
+    "@codemirror/view": "^6.43.6",
+    "codemirror": "^6.0.2",
+    "htm": "^3.1.1",
+    "preact": "^10.29.7"
+  }
+}
